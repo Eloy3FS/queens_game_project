@@ -1,0 +1,1 @@
+# Dependencias necesarias (incluye gradio o streamlit según tu elección)
