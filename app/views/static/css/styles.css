@@ -1,0 +1,26 @@
+/* Establece estilos para que las celdas del tablero sean cuadradas */
+#board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);  /* Se actualizará dinámicamente en JS según el tamaño del tablero */
+    gap: 5px;
+}
+.cell {
+    background-color: #f0f0f0;
+    width: 100%;
+    padding-top: 100%; /* Para lograr proporción 1:1 */
+    position: relative;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+.cell-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
