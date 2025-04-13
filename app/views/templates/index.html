@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="game-container" class="my-3">
+    <!-- Aquí se mostrará el tablero -->
+    <div id="board" class="d-grid gap-2"></div>
+</div>
+
+<div id="controls" class="my-3">
+    <!-- Control para reiniciar, cambiar tamaño, cronómetro, etc. -->
+    <button id="reset-btn" class="btn btn-primary">Reset Game</button>
+    <input type="number" id="board-size" placeholder="Board Size" min="4" value="8">
+    <span id="timer">00:00</span>
+</div>
+
+<!-- Mensajes de estado -->
+<div id="status-message"></div>
+{% endblock %}

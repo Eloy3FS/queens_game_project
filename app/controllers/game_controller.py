@@ -1,5 +1,5 @@
 import time
-from models import queens, coloring
+from app.models import queens, coloring
 
 class GameController:
     def __init__(self, board_size):
@@ -7,9 +7,9 @@ class GameController:
         self.start_game()
         
     def start_game(self):
-        # Generate the solution queen board (list of column indices per row)
+        # Generate the solution queen board (list of column indices for each row)
         self.solution_queen_board = queens.generate_random_board(self.board_size)
-        # Generate the colored board and the solution number board
+        # Generate the colored board and the solution number board using the coloring module
         self.colored_board, self.solution_number_board = coloring.color_board(self.solution_queen_board, self.board_size)
         # Initialize the user board: start with all cells set to "X" (cross)
         self.user_board = [['X' for _ in range(self.board_size)] for _ in range(self.board_size)]
@@ -29,7 +29,7 @@ class GameController:
         Validate a move for the cell at (row, col) given the move_type.
         For a "queen" move:
           - The queen must be placed in the correct cell (as determined by the solution).
-          - There must be no other queen in the same row or column.
+          - There must be no other queen in the same column.
         For a "cross" move, no additional validation is needed.
         
         Returns:
@@ -39,7 +39,7 @@ class GameController:
         valid = True
         
         if move_type == "queen":
-            # Check if the cell already contains a queen
+            # Check if a queen is already placed in this cell
             if self.user_board[row][col] == 'Q':
                 valid = False
                 message = "A queen is already placed here."
@@ -49,14 +49,14 @@ class GameController:
                 if col != correct_col:
                     valid = False
                     message = "Incorrect queen position."
-                # Check for a duplicate queen in the same column in another row
+                # Check for a duplicate queen in the same column (in another row)
                 for r in range(self.board_size):
                     if r != row and self.user_board[r][col] == 'Q':
                         valid = False
                         message = "Another queen is already placed in this column."
                         break
         elif move_type == "cross":
-            # For a cross move, accept it without error checking.
+            # For a cross move, we accept it without extra validation.
             valid = True
         else:
             valid = False
