@@ -1,26 +1,151 @@
-/* Establece estilos para que las celdas del tablero sean cuadradas */
-#board {
+/* styles.css */
+
+/* Prevent any scrolling and make html/body fill the viewport */
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+  
+  /* Root variables for theming and grid gap */
+  :root {
+    --board-gap: 5px;          /* Space between cells */
+    --board-size: 8;           /* Default size; overridden via JS */
+    --cell-bg: #f8f9fa;        /* Idle cell background */
+    --cell-border: #dee2e6;    /* Cell border color */
+    --cell-hover: #e2e6ea;     /* Hover background */
+  }
+  
+  /* Centered container that always fits within viewport */
+  #game-container {
+    width: 90vmin;
+    height: 90vmin;
+    margin: auto;
+  }
+  
+  /* CSS grid that fills the container */
+  #board {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);  /* Se actualizará dinámicamente en JS según el tamaño del tablero */
-    gap: 5px;
-}
-.cell {
-    background-color: #f0f0f0;
+    grid-template-columns: repeat(var(--board-size), 1fr);
+    grid-auto-rows: 1fr;       /* Each row is same size as each column */
+    gap: var(--board-gap);
     width: 100%;
-    padding-top: 100%; /* Para lograr proporción 1:1 */
+    height: 100%;
+  }
+  
+  /* Each cell is now a full grid tile */
+  .cell {
     position: relative;
-    border: 1px solid #ccc;
+    background-color: var(--cell-bg);
+    border: 1px solid var(--cell-border);
     cursor: pointer;
-}
+    transition: background-color 0.2s ease;
+    overflow: hidden;
+  }
+  
+  .cell:hover {
+    background-color: var(--cell-hover);
+  }
+  
+  /* Wrapper for images/backgrounds */
+  .cell-content {
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+  
+  /* State classes */
+  .cell-queen .cell-content {
+    background-image: url("/static/assets/queen.png");
+  }
+  
+  .cell-cross .cell-content {
+    background-image: url("/static/assets/cross.png");
+  }
+  
+  .cell-error .cell-content {
+    background-image: url("/static/assets/error.png");
+    opacity: 0.7;
+  }
+  
+  /* Responsive gap tweaks */
+  @media (max-width: 600px) {
+    :root {
+      --board-gap: 3px;
+    }
+  }
+  
+/* in static/css/styles.css */
+
+/* inside .cell-content: position relative already */
 .cell-content {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; right: 0; bottom: 0; left: 0;
+  }
+  
+  /* Generic icon style */
+  .cell-content img {
+    position: absolute;
+    width: 60%; height: 60%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  
+  /* z‑index to layer them */
+  .cross-icon { z-index: 1; }
+  .queen-icon{ z-index: 2; }
+  .error-icon{ z-index: 3; opacity: 0.7; }
+  
+
+  #win-overlay {
+    position: fixed;
+    top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.6);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index: 999;
+  }
+  .win-box {
+    background: white;
+    padding: 2rem;
+    text-align: center;
+    border-radius: 8px;
+  }
+  #close-win {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+  }
+  
+
+  /* Win‐overlay styles */
+#win-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-}
+    z-index: 999;
+  }
+  
+  .win-box {
+    background: #fff;
+    padding: 2rem 3rem;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  
+  .win-box h2 {
+    margin-bottom: 1rem;
+  }
+  
+  .win-box button {
+    margin-top: 1rem;
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+  }
