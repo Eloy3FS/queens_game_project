@@ -1,3 +1,5 @@
+# app/controllers/game_controller.py
+
 import time
 from app.models import queens, coloring
 
@@ -7,111 +9,115 @@ class GameController:
         self.start_game()
         
     def start_game(self):
-        # Generate the solution queen board (list of column indices for each row)
+        # 1) solution & colored
         self.solution_queen_board = queens.generate_random_board(self.board_size)
-        # Generate the colored board and the solution number board using the coloring module
-        self.colored_board, self.solution_number_board = coloring.color_board(self.solution_queen_board, self.board_size)
-        # Initialize the user board: start with all cells set to "X" (cross)
-        self.user_board = [['X' for _ in range(self.board_size)] for _ in range(self.board_size)]
-        # Error board: a boolean matrix that marks cells with an error (False = no error)
-        self.error_board = [[False for _ in range(self.board_size)] for _ in range(self.board_size)]
-        # Record the game start time (for the timer)
+        self.colored_board, _     = coloring.color_board(
+            self.solution_queen_board, self.board_size
+        )
+        # 2) user board: '' / 'X' / 'Q'
+        n = self.board_size
+        self.user_board  = [['' for _ in range(n)] for __ in range(n)]
+        self.error_board = [[False for _ in range(n)] for __ in range(n)]
+        # 3) timer
         self.start_time = time.time()
-    
+
     def get_elapsed_time(self):
         elapsed = time.time() - self.start_time
-        minutes = int(elapsed // 60)
-        seconds = int(elapsed % 60)
-        return f"{minutes:02d}:{seconds:02d}"
-    
-    def validate_move(self, row, col, move_type):
+        m, s = divmod(int(elapsed), 60)
+        return f"{m:02d}:{s:02d}"
+
+    def scan_errors(self):
         """
-        Validate a move for the cell at (row, col) given the move_type.
-        For a "queen" move:
-          - The queen must be placed in the correct cell (as determined by the solution).
-          - There must be no other queen in the same column.
-        For a "cross" move, no additional validation is needed.
-        
-        Returns:
-            tuple: (valid: bool, message: str)
+        Recompute error_board by flagging every pair of queens
+        that conflict by:
+         - distance‑1 (orthogonal or diagonal)
+         - same row or column
+         - same colored_cell in colored_board
         """
-        message = ""
-        valid = True
-        
-        if move_type == "queen":
-            # Check if a queen is already placed in this cell
-            if self.user_board[row][col] == 'Q':
-                valid = False
-                message = "A queen is already placed here."
-            else:
-                # Validate that the queen is in the correct position
-                correct_col = self.solution_queen_board[row]
-                if col != correct_col:
-                    valid = False
-                    message = "Incorrect queen position."
-                # Check for a duplicate queen in the same column (in another row)
-                for r in range(self.board_size):
-                    if r != row and self.user_board[r][col] == 'Q':
-                        valid = False
-                        message = "Another queen is already placed in this column."
-                        break
-        elif move_type == "cross":
-            # For a cross move, we accept it without extra validation.
-            valid = True
-        else:
-            valid = False
-            message = "Invalid move type."
-        
-        return valid, message
-    
+        n = self.board_size
+        self.error_board = [[False]*n for _ in range(n)]
+        # collect queen positions
+        queens_pos = [
+            (r,c)
+            for r in range(n) for c in range(n)
+            if self.user_board[r][c] == 'Q'
+        ]
+        def mark(a,b):
+            (r1,c1),(r2,c2) = a,b
+            self.error_board[r1][c1] = True
+            self.error_board[r2][c2] = True
+
+        for i in range(len(queens_pos)):
+            for j in range(i+1, len(queens_pos)):
+                r1,c1 = queens_pos[i]
+                r2,c2 = queens_pos[j]
+                # distance‑1
+                if max(abs(r1-r2), abs(c1-c2)) == 1:
+                    mark((r1,c1),(r2,c2))
+                # same row/col
+                if r1==r2 or c1==c2:
+                    mark((r1,c1),(r2,c2))
+                # same solution color
+                if self.colored_board[r1][c1] == self.colored_board[r2][c2]:
+                    mark((r1,c1),(r2,c2))
+
     def update_move(self, row, col, move_type):
         """
-        Update the game state when a move is made.
-        If the move is valid, update the user board.
-        If invalid, mark that cell in the error board.
-        
-        Args:
-            row (int): The row index of the move.
-            col (int): The column index of the move.
-            move_type (str): The type of move ("queen" or "cross").
-        
-        Returns:
-            tuple: (valid: bool, message: str)
+        1) cycle cell state:
+           '' -> 'X' -> 'Q' -> ''
+        2) after any change, re‑scan all errors
+        Returns (always valid=True, optional message)
         """
-        valid, message = self.validate_move(row, col, move_type)
-        if valid:
-            if move_type == "queen":
-                self.user_board[row][col] = 'Q'
-                self.error_board[row][col] = False
-            elif move_type == "cross":
-                self.user_board[row][col] = 'X'
-                self.error_board[row][col] = False
+        current = self.user_board[row][col]
+        # determine new state
+        if move_type == "cross":
+            new = 'X'
+        elif move_type == "queen":
+            new = 'Q'
+        elif move_type == "clear":
+            new = ''
         else:
-            # Mark the cell as error to trigger visual feedback (e.g. red cross overlay)
-            self.error_board[row][col] = True
-        return valid, message
-    
-    def get_game_state(self):
-        """
-        Returns a dictionary containing the current game state.
-        This includes the user board, error board, colored board, solution number board, and elapsed time.
-        """
-        return {
-            "user_board": self.user_board,
-            "error_board": self.error_board,
-            "colored_board": self.colored_board,
-            "solution_number_board": self.solution_number_board,
-            "elapsed_time": self.get_elapsed_time()
-        }
-    
+            new = current
+
+        self.user_board[row][col] = new
+
+        # optional hint only when placing a queen
+        message = ""
+        if new == 'Q':
+            # check if that placement is the correct column
+            correct = self.solution_queen_board[row]
+            if col != correct:
+                message = "Incorrect queen position."
+
+        # recompute all errors
+        self.scan_errors()
+
+        return True, message
+
     def is_game_complete(self):
         """
-        Check if the game is complete: every row has a queen placed at the correct cell.
-        
-        Returns:
-            bool: True if the game is complete, False otherwise.
+        True if every row has a queen in the correct column
+        and there are no errors flagged.
         """
-        for row in range(self.board_size):
-            if self.user_board[row][self.solution_queen_board[row]] != 'Q':
+        # all rows correct?
+        for r,correct_col in enumerate(self.solution_queen_board):
+            if self.user_board[r][correct_col] != 'Q':
+                return False
+        # no errors?
+        for row in self.error_board:
+            if any(row):
                 return False
         return True
+
+    def get_game_state(self):
+        return {
+            "user_board":      self.user_board,
+            "error_board":     self.error_board,
+            "colored_board":   self.colored_board,
+            "elapsed_time":    self.get_elapsed_time(),
+            "is_complete":     self.is_game_complete()
+        }
+
+    def reset_game(self, board_size):
+        self.board_size = board_size
+        self.start_game()
