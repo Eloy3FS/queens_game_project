@@ -1,4 +1,4 @@
-# app.py
+# Modified app.py
 
 from flask import Flask, render_template, request, jsonify
 from app.controllers.game_controller import GameController
@@ -47,11 +47,28 @@ def move():
         "state": state
     })
 
+@app.route("/get_time", methods=["GET"])
+def get_time():
+    """
+    New endpoint to get the current elapsed time.
+    This helps with keeping the timer synchronized.
+    """
+    return jsonify({
+        "elapsed_time": controller.get_elapsed_time()
+    })
+
 @app.route("/reset", methods=["POST"])
 def reset():
     global controller
     data = request.get_json()
     new_size = int(data.get("board_size", controller.board_size))
+    
+    # Validate board size
+    if new_size < 4 or new_size > 15:
+        return jsonify({
+            "error": "Invalid board size. Must be between 4 and 15."
+        }), 400
+        
     controller = GameController(board_size=new_size)
     return jsonify({ "state": controller.get_game_state() })
 

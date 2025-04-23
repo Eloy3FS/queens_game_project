@@ -1,39 +1,80 @@
 {% extends "base.html" %}
 
-{% block title %}Play – Queen Game{% endblock %}
+{% block title %}Queen Game{% endblock %}
 
 {% block content %}
-  <!-- Controls Row -->
-  <div class="row mb-4 align-items-center">
-    <div class="col-md-6 d-flex align-items-center">
-      <label for="board-size" class="me-2 mb-0">Board Size:</label>
-      <input
-        type="number"
-        id="board-size"
-        class="form-control w-auto me-3"
-        min="4"
-        value="{{ board_size }}"
+  <!-- Top Bar: Settings icon + Timer -->
+  <div class="top-bar mb-3">
+    <button id="settings-btn" class="btn btn-link p-0">
+      <img
+        src="{{ url_for('static', filename='assets/settings_icon.png') }}"
+        alt="Settings"
+        class="settings-icon"
       >
-      <button id="reset-btn" class="btn btn-primary">Reset Game</button>
-    </div>
-    <div class="col-md-6 text-md-end mt-3 mt-md-0">
-      <span class="fs-5">Timer: <span id="timer">00:00</span></span>
-    </div>
+    </button>
+    <span id="timer" class="timer-text">00:00</span>
   </div>
 
-  <!-- Game Board Container -->
-  <div id="game-container" class="mx-auto" style="max-width: 90vw;">
+  <!-- Game Board -->
+  <div id="game-container" class="mx-auto mb-3">
     <div id="board"></div>
   </div>
+  
+  <!-- Controls Row: Clear on left, Reset on right -->
+  <div class="controls-container mb-3">
+    <button id="clear-btn" class="btn btn-primary rounded-pill">Clear Board</button>
+    <div class="d-flex align-items-center">
+      <label for="board-size" class="me-2 mb-0">Board Size:</label>
+      <div class="input-group me-3" style="width:100px;">
+        <input
+          type="number"
+          id="board-size"
+          class="form-control rounded-pill"
+          min="4"
+          max="15"
+          value="{{ board_size }}"
+        >
+        <div id="size-error" class="invalid-feedback">4–15</div>
+      </div>
+      <button id="reset-btn" class="btn btn-primary rounded-pill">Reset Game</button>
+    </div>
+  </div>
 
-  <!-- Status / Feedback Message -->
-  <div id="status-message" class="mt-3 text-center text-danger"></div>
+  <!-- Status / Feedback -->
+  <div id="status-message" class="text-danger mb-3"></div>
+
+  <!-- Settings Overlay -->
+  <div id="settings-overlay" class="settings-overlay d-none">
+    <div class="settings-box">
+      <button id="close-settings-btn" class="settings-close">&times;</button>
+      <h2>Settings</h2>
+      <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="dark-mode-switch">
+        <label class="form-check-label" for="dark-mode-switch">Dark Mode</label>
+      </div>
+      <div class="mb-3">
+        <label for="settings-board-size" class="form-label">
+          Board Size: <span id="settings-size-value">{{ board_size }}</span>
+        </label>
+        <input
+          type="range"
+          class="form-range"
+          id="settings-board-size"
+          min="4"
+          max="10"
+          value="{{ board_size }}"
+        >
+      </div>
+      <button id="apply-settings-btn" class="btn btn-primary rounded-pill w-100">
+        Apply Changes
+      </button>
+    </div>
+  </div>
 {% endblock %}
 
 {% block scripts %}
   <script>
-    // Inject initial values for JavaScript
     const INITIAL_BOARD_SIZE = {{ board_size }};
-    const INITIAL_STATE = {{ initial_state | tojson }};
+    const INITIAL_STATE      = {{ initial_state | tojson }};
   </script>
 {% endblock %}

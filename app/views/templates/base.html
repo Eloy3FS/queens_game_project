@@ -24,22 +24,11 @@
   <!-- Hook for additional head content -->
   {% block head %}{% endblock %}
 </head>
-<body class="d-flex flex-column min-vh-100">
-
-  <!-- Header -->
-  <header class="bg-primary text-white text-center py-3">
-    <h1 class="m-0">Queen Game</h1>
-  </header>
-
+<body>
   <!-- Main content area -->
-  <main class="container flex-fill my-4">
+  <main class="game-wrapper">
     {% block content %}{% endblock %}
   </main>
-
-  <!-- Footer -->
-  <footer class="bg-light text-center text-muted py-2">
-    &copy; 2025 Queen Game
-  </footer>
 
   <!-- Bootstrap JS bundle -->
   <script
