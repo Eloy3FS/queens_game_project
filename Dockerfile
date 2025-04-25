@@ -15,4 +15,4 @@ COPY . .
 EXPOSE 7860
 
 # Run the Flask app via Gunicorn on 0.0.0.0:7860
-CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:7860", "--workers", "1", "--threads", "4"]
+CMD ["gunicorn", "main:app", "--bind", "0.0.0.0:7860", "--workers", "1", "--threads", "4"]
