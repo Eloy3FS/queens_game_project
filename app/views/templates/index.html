@@ -23,21 +23,7 @@
   <!-- Controls Row: Clear on left, Reset on right -->
   <div class="controls-container mb-3">
     <button id="clear-btn" class="btn btn-primary rounded-pill">Clear Board</button>
-    <div class="d-flex align-items-center">
-      <label for="board-size" class="me-2 mb-0">Board Size:</label>
-      <div class="input-group me-3" style="width:100px;">
-        <input
-          type="number"
-          id="board-size"
-          class="form-control rounded-pill"
-          min="4"
-          max="15"
-          value="{{ board_size }}"
-        >
-        <div id="size-error" class="invalid-feedback">4–15</div>
-      </div>
-      <button id="reset-btn" class="btn btn-primary rounded-pill">Reset Game</button>
-    </div>
+    <button id="reset-btn" class="btn btn-primary rounded-pill">Reset Game</button>
   </div>
 
   <!-- Status / Feedback -->
@@ -48,10 +34,20 @@
     <div class="settings-box">
       <button id="close-settings-btn" class="settings-close">&times;</button>
       <h2>Settings</h2>
+
+      <!-- Dark Mode -->
       <div class="form-check form-switch mb-3">
         <input class="form-check-input" type="checkbox" id="dark-mode-switch">
         <label class="form-check-label" for="dark-mode-switch">Dark Mode</label>
       </div>
+
+      <!-- Auto-complete Crosses -->
+      <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" id="auto-cross-switch" checked>
+        <label class="form-check-label" for="auto-cross-switch">Auto-complete Crosses</label>
+      </div>
+
+      <!-- Board Size Slider -->
       <div class="mb-3">
         <label for="settings-board-size" class="form-label">
           Board Size: <span id="settings-size-value">{{ board_size }}</span>
@@ -65,6 +61,7 @@
           value="{{ board_size }}"
         >
       </div>
+
       <button id="apply-settings-btn" class="btn btn-primary rounded-pill w-100">
         Apply Changes
       </button>
@@ -74,7 +71,7 @@
 
 {% block scripts %}
   <script>
-    const INITIAL_BOARD_SIZE = {{ board_size }};
-    const INITIAL_STATE      = {{ initial_state | tojson }};
+    const INITIAL_BOARD_SIZE      = {{ board_size }};
+    const INITIAL_STATE           = {{ initial_state | tojson }};
   </script>
 {% endblock %}

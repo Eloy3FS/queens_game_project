@@ -39,6 +39,14 @@
 
   <!-- Custom JavaScript -->
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+               .register('/static/service-worker.js')
+               .catch(err => console.warn("SW registration failed:", err));
+    }
+  </script>
   
   <!-- Hook for additional scripts -->
   {% block scripts %}{% endblock %}
