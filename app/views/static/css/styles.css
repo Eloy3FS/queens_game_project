@@ -201,3 +201,13 @@ body.dark-mode .settings-box {
   touch-action: none;
   user-select: none;
 }
+
+/* Hint styling */
+.cell.hint-dim {
+  opacity: 0.2;
+}
+.cell.hint-highlight {
+  opacity: 1;
+  box-shadow: 0 0 10px 3px gold;
+  z-index: 5;
+}

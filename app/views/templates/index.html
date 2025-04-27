@@ -20,9 +20,10 @@
     <div id="board"></div>
   </div>
   
-  <!-- Controls Row: Clear on left, Reset on right -->
+  <!-- Controls Row: Clear, Hint y Reset -->
   <div class="controls-container mb-3">
     <button id="clear-btn" class="btn btn-primary rounded-pill">Clear Board</button>
+    <button id="hint-btn"  class="btn btn-warning rounded-pill">Hint</button>
     <button id="reset-btn" class="btn btn-primary rounded-pill">Reset Game</button>
   </div>
 
@@ -71,7 +72,7 @@
 
 {% block scripts %}
   <script>
-    const INITIAL_BOARD_SIZE      = {{ board_size }};
-    const INITIAL_STATE           = {{ initial_state | tojson }};
+    const INITIAL_BOARD_SIZE = {{ board_size }};
+    const INITIAL_STATE      = {{ initial_state | tojson }};
   </script>
 {% endblock %}

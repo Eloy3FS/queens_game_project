@@ -1,5 +1,3 @@
-// app/views/static/js/main.js
-
 document.addEventListener("DOMContentLoaded", () => {
   // ----- Initial State & Local Model -----
   const INITIAL = INITIAL_STATE;
@@ -36,24 +34,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const applySettingsBtn  = document.getElementById("apply-settings-btn");
   const resetBtn          = document.getElementById("reset-btn");
   const clearBtn          = document.getElementById("clear-btn");
+  const hintBtn           = document.getElementById("hint-btn");
 
   // ----- Recalculate Errors (client-side) -----
   function recalcErrors() {
     const n = boardSize;
     errorBoard = Array.from({ length: n }, () => Array(n).fill(false));
-
     const queens = [];
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
         if (userBoard[r][c] === "Q") queens.push([r, c]);
       }
     }
-
     function mark(a, b) {
       errorBoard[a[0]][a[1]] = true;
       errorBoard[b[0]][b[1]] = true;
     }
-
     for (let i = 0; i < queens.length; i++) {
       for (let j = i + 1; j < queens.length; j++) {
         const [r1, c1] = queens[i];
@@ -146,9 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showWinOverlay();
       }
     })
-    .catch(() => {
-      // ignore errors
-    });
+    .catch(() => {/* ignore errors */});
   }
 
   // ----- Auto-Cross Helpers -----
@@ -265,11 +259,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!isDragging) return;
     if (!hasDragged && startCell) {
       const { r, c } = startCell;
-      const prev    = startState;
       let moveType;
-      if (prev === "")       moveType = "cross";
-      else if (prev === "X") moveType = "queen";
-      else                    moveType = "clear";
+      if (startState === "")       moveType = "cross";
+      else if (startState === "X") moveType = "queen";
+      else                          moveType = "clear";
       applyLocalMove(r, c, moveType);
     }
     isDragging   = false;
@@ -310,7 +303,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateBoardUI();
   }
 
-  // ----- Settings & Controls -----
+  // ----- Settings & Controls (Dark, Auto-cross, Size) -----
   darkSwitch.checked      = window.matchMedia("(prefers-color-scheme: dark)").matches;
   autoCrossSwitch.checked = true;
 
@@ -375,6 +368,35 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // ----- Hint Button -----
+  hintBtn.addEventListener("click", () => {
+    fetch("/hint")
+      .then(res => res.json())
+      .then(data => {
+        const hints = data.hints;
+        // Atenuar todas
+        document.querySelectorAll(".cell").forEach(cell => {
+          cell.classList.add("hint-dim");
+          cell.classList.remove("hint-highlight");
+        });
+        // Resaltar las celdas de hint
+        hints.forEach(h => {
+          const sel = `.cell[data-row='${h.row}'][data-col='${h.col}']`;
+          const cell = document.querySelector(sel);
+          if (cell) {
+            cell.classList.remove("hint-dim");
+            cell.classList.add("hint-highlight");
+          }
+        });
+        // Quitar hint tras 5 segundos
+        setTimeout(() => {
+          document.querySelectorAll(".cell.hint-dim, .cell.hint-highlight")
+                  .forEach(c => c.classList.remove("hint-dim", "hint-highlight"));
+        }, 5000);
+      })
+      .catch(() => {});
+  });
+
   // ----- Timer Helpers -----
   function parseTimeToSeconds(str) {
     const [m, s] = str.split(":").map(Number);
@@ -392,7 +414,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const tot = base + d;
           const mm  = Math.floor(tot / 60);
           const ss  = tot % 60;
-          timerEl.textContent = `${String(mm).padStart(2,"0")}:${String(ss).padStart("0")}`;
+          timerEl.textContent = `${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`;
         }, 1000);
       });
   }
