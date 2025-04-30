@@ -10,7 +10,7 @@
         src="{{ url_for('static', filename='assets/settings_icon.png') }}"
         alt="Settings"
         class="settings-icon"
-      >
+      />
     </button>
     <span id="timer" class="timer-text">00:00</span>
   </div>
@@ -19,60 +19,90 @@
   <div id="game-container" class="mx-auto mb-3">
     <div id="board"></div>
   </div>
-  
-  <!-- Controls Row: Clear, Hint y Reset -->
+
+  <!-- Controls -->
   <div class="controls-container mb-3">
-    <button id="clear-btn" class="btn btn-primary rounded-pill">Clear Board</button>
-    <button id="hint-btn"  class="btn btn-warning rounded-pill">Hint</button>
-    <button id="reset-btn" class="btn btn-primary rounded-pill">Reset Game</button>
+    <button id="clear-btn" class="btn btn-primary rounded-pill">
+      Clear Board
+    </button>
+    <button id="hint-btn" class="btn btn-warning rounded-pill">Hint</button>
+    <button id="reset-btn" class="btn btn-primary rounded-pill">
+      Reset Game
+    </button>
   </div>
 
   <!-- Status / Feedback -->
   <div id="status-message" class="text-danger mb-3"></div>
 
-  <!-- Settings Overlay -->
-  <div id="settings-overlay" class="settings-overlay d-none">
+
+  <!-- Settings Overlay (matches win-box styling) -->
+  <div id="settings-overlay" class="settings-overlay">
     <div class="settings-box">
+      <!-- close icon in top‐left -->
       <button id="close-settings-btn" class="settings-close">&times;</button>
-      <h2>Settings</h2>
 
-      <!-- Dark Mode -->
-      <div class="form-check form-switch mb-3">
-        <input class="form-check-input" type="checkbox" id="dark-mode-switch">
-        <label class="form-check-label" for="dark-mode-switch">Dark Mode</label>
+      <!-- header -->
+      <h2>⚙️ Settings</h2>
+
+      <!-- Dark Mode toggle -->
+      <div class="form-switch mb-3">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="dark-mode-switch"
+        />
+        <label class="form-check-label" for="dark-mode-switch">
+          Dark Mode
+        </label>
       </div>
 
-      <!-- Auto-complete Crosses -->
-      <div class="form-check form-switch mb-3">
-        <input class="form-check-input" type="checkbox" id="auto-cross-switch" checked>
-        <label class="form-check-label" for="auto-cross-switch">Auto-complete Crosses</label>
+      <!-- Auto-Cross toggle -->
+      <div class="form-switch mb-3">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="auto-cross-switch"
+          checked
+        />
+        <label class="form-check-label" for="auto-cross-switch">
+          Auto-Cross
+        </label>
       </div>
 
-      <!-- Board Size Slider -->
-      <div class="mb-3">
-        <label for="settings-board-size" class="form-label">
+      <!-- Board Size slider -->
+      <div class="form-group mb-3">
+        <label for="settings-board-size">
           Board Size: <span id="settings-size-value">{{ board_size }}</span>
         </label>
         <input
-          type="range"
-          class="form-range"
           id="settings-board-size"
+          type="range"
           min="4"
-          max="10"
+          max="15"
           value="{{ board_size }}"
-        >
+        />
       </div>
 
-      <button id="apply-settings-btn" class="btn btn-primary rounded-pill w-100">
+      <!-- Generation Mode select -->
+      <div class="form-group mb-4">
+        <label for="settings-gen-mode">Generation Mode</label>
+        <select id="settings-gen-mode">
+          <option value="random"  {% if gen_mode=="random"  %}selected{% endif %}>
+            Random
+          </option>
+          <option value="conquest" {% if gen_mode=="conquest" %}selected{% endif %}>
+            Conquest
+          </option>
+        </select>
+      </div>
+
+      <!-- Apply button -->
+      <button
+        id="apply-settings-btn"
+        class="btn btn-primary rounded-pill"
+      >
         Apply Changes
       </button>
     </div>
   </div>
-{% endblock %}
-
-{% block scripts %}
-  <script>
-    const INITIAL_BOARD_SIZE = {{ board_size }};
-    const INITIAL_STATE      = {{ initial_state | tojson }};
-  </script>
 {% endblock %}

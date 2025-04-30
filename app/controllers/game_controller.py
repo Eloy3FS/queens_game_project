@@ -1,37 +1,32 @@
-# app/controllers/game_controller.py
-
 import time
 from app.models.generator import generate_unique_board
+from app.models.conquest_generator import generate_conquest_board
 
 class GameController:
-    def __init__(self, board_size):
+    def __init__(self, board_size, gen_mode="random"):
         self.board_size = board_size
+        self.gen_mode   = gen_mode  # "random" o "conquest"
         self.start_game()
-        
+
     def start_game(self):
         """
-        Initialize a new game:
-        1) Generate a unique solvable board (solution + colored setup)
-        2) Reset user_board and error_board
-        3) Reset timer
+        Initialize a new game using selected generation mode:
+        - "random": generate_unique_board
+        - "conquest": generate_conquest_board
+        Then reset user and error boards and timer.
         """
-        # 1) Generate solution and colored board with unique solvability
-        # Retry until a unique board is found
-        while True:
-            try:
-                self.solution_queen_board, self.colored_board = generate_unique_board(self.board_size)
-                break
-            except RuntimeError:
-                # Retry generation
-                continue
+        if self.gen_mode == "conquest":
+            sol, col = generate_conquest_board(self.board_size)
+        else:
+            sol, col = generate_unique_board(self.board_size)
 
-        # 2) Initialize user and error boards
+        self.solution_queen_board = sol
+        self.colored_board        = col
+
         n = self.board_size
         self.user_board  = [['' for _ in range(n)] for __ in range(n)]
         self.error_board = [[False for _ in range(n)] for __ in range(n)]
-
-        # 3) Start timer
-        self.start_time = time.time()
+        self.start_time  = time.time()
 
     def get_elapsed_time(self):
         elapsed = time.time() - self.start_time
@@ -39,13 +34,6 @@ class GameController:
         return f"{m:02d}:{s:02d}"
 
     def scan_errors(self):
-        """
-        Recompute error_board by flagging every pair of queens
-        that conflict by:
-         - adjacent distance (orthogonal or diagonal)
-         - same row or column
-         - same colored cell region
-        """
         n = self.board_size
         self.error_board = [[False]*n for _ in range(n)]
         queens_pos = [
@@ -74,10 +62,6 @@ class GameController:
                     mark((r1, c1), (r2, c2))
 
     def update_move(self, row, col, move_type):
-        """
-        Handle a user action (cross, queen, clear).
-        After updating, re-scan errors and provide optional feedback.
-        """
         current = self.user_board[row][col]
         if move_type == "cross":
             new = 'X'
@@ -99,7 +83,6 @@ class GameController:
         return True, message
 
     def is_game_complete(self):
-        """True if every row has a queen in the correct column and no errors."""
         for r, correct_col in enumerate(self.solution_queen_board):
             if self.user_board[r][correct_col] != 'Q':
                 return False
@@ -114,9 +97,12 @@ class GameController:
             "error_board":   self.error_board,
             "colored_board": self.colored_board,
             "elapsed_time":  self.get_elapsed_time(),
-            "is_complete":   self.is_game_complete()
+            "is_complete":   self.is_game_complete(),
+            "gen_mode":      self.gen_mode
         }
 
-    def reset_game(self, board_size):
+    def reset_game(self, board_size, gen_mode=None):
+        if gen_mode:
+            self.gen_mode = gen_mode
         self.board_size = board_size
         self.start_game()
