@@ -5,7 +5,7 @@ from app.models.conquest_generator import generate_conquest_board
 class GameController:
     def __init__(self, board_size, gen_mode="random"):
         self.board_size = board_size
-        self.gen_mode   = gen_mode  # "random" o "conquest"
+        self.gen_mode   = gen_mode  # "random" or "conquest"
         self.start_game()
 
     def start_game(self):
@@ -16,7 +16,8 @@ class GameController:
         Then reset user and error boards and timer.
         """
         if self.gen_mode == "conquest":
-            sol, col = generate_conquest_board(self.board_size)
+            # generate_conquest_board now returns (solution, board, iters, succ, reason)
+            sol, col, *_ = generate_conquest_board(self.board_size)
         else:
             sol, col = generate_unique_board(self.board_size)
 

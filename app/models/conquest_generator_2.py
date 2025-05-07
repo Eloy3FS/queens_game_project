@@ -52,6 +52,27 @@ def _connected(cells: Set[Coord], removed: Coord | None = None) -> bool:
     return seen == cells
 
 
+
+def _find_island(cells: Set[Coord], queen: Coord) -> Set[Coord]:
+    """
+    Encuentra la isla en `cells` que no contiene la coordenada `queen`.
+    Si no hay tal isla, retorna set vacío.
+    """
+    if queen not in cells or len(cells) <= 1:
+        return set()
+    visited = set()
+    from collections import deque
+    q: Deque[Coord] = deque([queen])
+    visited.add(queen)
+    while q:
+        r, c = q.popleft()
+        for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nr, nc = r + dr, c + dc
+            if (nr, nc) in cells and (nr, nc) not in visited:
+                visited.add((nr, nc))
+                q.append((nr, nc))
+    return cells - visited
+
 def _to_rgb(
     territories: Territories,
     n: int,
@@ -164,13 +185,18 @@ def generate_conquest_board(
                 (o for o, terr in territories.items() if cell in terr),
                 None,
             )
-            # Skip if splits old owner's territory
-            if old_owner is not None and not _connected(territories[old_owner], removed=cell):
-                continue
-            # Perform conquest
-            territories[colour].add(cell)
+            # Eliminar la celda del territorio original si existe
             if old_owner is not None:
                 territories[old_owner].remove(cell)
+            # Conquistar celda principal
+            territories[colour].add(cell)
+            # Detectar y absorber isla desconectada
+            if old_owner is not None:
+                island = _find_island(territories[old_owner], (old_owner, solution[old_owner]))
+                if island:
+                    for iso in island:
+                        territories[colour].add(iso)
+                        territories[old_owner].remove(iso)
             successful += 1
             conquest_done = True
             break
