@@ -23,10 +23,11 @@ from copy import deepcopy
 from typing import Deque, Dict, List, Set, Tuple
 
 from app.utils.color_utils import generate_distinct_colors
-from app.models.generator import find_alternate
+# from app.models.generator import find_alternate
 from app.models.queens import generate_random_board, print_board
 from app.models.resoution import SolverState
 
+from app.utils.color_utils import find_alternate
 from app.utils.color_utils import plot_colored_board
 
 Coord = Tuple[int, int]

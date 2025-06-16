@@ -4,6 +4,7 @@ from .queens import generate_random_board
 from .coloring import color_board
 from .resoution import SolverState
 
+from app.utils.color_utils import find_alternate
 
 def find_alternate(official_solution, colored_board):
     """
