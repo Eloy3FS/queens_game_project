@@ -22,13 +22,9 @@ from collections import deque
 from copy import deepcopy
 from typing import Deque, Dict, List, Set, Tuple
 
-from app.utils.color_utils import generate_distinct_colors
-# from app.models.generator import find_alternate
+from app.utils.color_utils import generate_distinct_colors, find_alternate, plot_colored_board
 from app.models.queens import generate_random_board, print_board
 from app.models.resoution import SolverState
-
-from app.utils.color_utils import find_alternate
-from app.utils.color_utils import plot_colored_board
 
 Coord = Tuple[int, int]
 Territories = Dict[int, Set[Coord]]
@@ -72,18 +68,24 @@ def generate_conquest_board(
     *,
     max_rounds: int = 2000,
     debug: bool = False,
-) -> Tuple[List[int], List[List[Tuple[int, int, int]]], int, int, str]:
+    record_steps: bool = False,
+):
     """
     Generate an N×N board with:
       - unique solution
       - requires step5_and_6()
       - no colour islands
+
+    If record_steps=True, devuelve además una lista de todos los tableros
+    intermedios y su etiqueta, útil para depuración interactiva.
+
     Returns:
       solution: List[int]
       final_board: List[List[RGB]]
       iterations: int
       successful_conquests: int
       stop_reason: str
+      steps (solo si record_steps=True): List[ (etiqueta: str, board: List[List[RGB]]) ]
     """
     # 1. Official solution & initial territories
     solution = generate_random_board(n)
@@ -94,9 +96,14 @@ def generate_conquest_board(
     all_cells = {(r, c) for r in range(n) for c in range(n)}
     territories[dominant] = all_cells - (queen_cells - territories[dominant])
 
-    # 2. Color seeds for each queen
+    # 2. Color seeds & prepare recording
     seed_colors = generate_distinct_colors(n)
     last_valid = deepcopy(territories)
+
+    # Lista para grabar tableros intermedios
+    steps: List[Tuple[str, List[List[Tuple[int,int,int]]]]] = []
+    if record_steps:
+        steps.append(("start", _to_rgb(territories, n, seed_colors)))
 
     colour_queue = list(range(n))
     ptr = 0
@@ -127,11 +134,7 @@ def generate_conquest_board(
                 if not (0 <= nr < n and 0 <= nc < n):
                     continue
                 cell = (nr, nc)
-                # Skip fixed queen spots
-                if cell in queen_cells:
-                    continue
-                # Skip own cells
-                if cell in territories[colour]:
+                if cell in queen_cells or cell in territories[colour]:
                     continue
                 frontier.append(cell)
 
@@ -160,6 +163,7 @@ def generate_conquest_board(
         snapshot = deepcopy(territories)
         conquest_done = False
 
+        # Try a conquest
         for cell in frontier:
             old_owner = next(
                 (o for o, terr in territories.items() if cell in terr),
@@ -179,32 +183,48 @@ def generate_conquest_board(
         if not conquest_done:
             continue
 
+        # Grabar estado post-conquista
+        if record_steps:
+            steps.append((f"conquest #{successful} @ it{it}", _to_rgb(territories, n, seed_colors)))
+
         # Post-conquest: solver + alternate check
         coloured = _to_rgb(territories, n, seed_colors)
         solver = SolverState(coloured)
         used56 = False
-        changed = True
-        while changed:
-            changed = (
-                solver.step1() or solver.step2() or solver.step3() or solver.step4()
-            )
+        round = 0
+
+        # Aplicar pasos lógicos y grabar cada uno
+        while True:
+            applied = False
+            # step1..step4
+            for num, fn in enumerate((solver.step1, solver.step2, solver.step3, solver.step4), start=1):
+                if fn():
+                    applied = True
+                    if record_steps:
+                        steps.append((f"step{num} @ it{it} round{round}", _to_rgb(territories, n, seed_colors)))
+            # step5_and_6
             if solver.step5_and_6():
-                changed = True
+                applied = True
                 used56 = True
+                if record_steps:
+                    steps.append((f"step5_and_6 @ it{it} round{round}", _to_rgb(territories, n, seed_colors)))
+            if not applied:
+                break
+            round += 1
 
         # Alternate solution: revert & continue
         if find_alternate(solution, coloured):
             if debug:
-                print(f"[debug] alternate solution detected at iteration {it}, reverting conquest")
+                print(f"[debug] alternate solution at it{it}, revert")
             territories = snapshot
             continue
 
         placed = sum(q for row in solver.queens for q in row)
-        # Stop C: solved with required difficulty
+        # Stop C: solved con dificultad
         if placed == n and used56:
             stop_reason = "solved with step5_and_6"
             if debug:
-                print(f"[stop] {stop_reason} at iteration {it}")
+                print(f"[stop] {stop_reason} at it{it}")
             last_valid = deepcopy(territories)
             break
 
@@ -215,8 +235,9 @@ def generate_conquest_board(
         if debug:
             print(f"[stop] {stop_reason}")
 
+    # Estado final
     final_board = _to_rgb(last_valid, n, seed_colors)
-    return solution, final_board, it + 1, successful, stop_reason
+    return solution, final_board, it + 1, successful, stop_reason, steps
 
 
 if __name__ == "__main__":
@@ -227,7 +248,8 @@ if __name__ == "__main__":
     parser.add_argument("--debug", action="store_true", help="Enable debug logs")
     args = parser.parse_args()
 
-    sol, board, iterations, successful, stop_reason = generate_conquest_board(
+    # Desempaquetamos el sexto valor (_) que es steps cuando record_steps=False
+    sol, board, iterations, successful, stop_reason, _ = generate_conquest_board(
         args.size, debug=args.debug
     )
 
@@ -246,6 +268,7 @@ if __name__ == "__main__":
     for row in board:
         print(" ".join(str(c) for c in row))
 
+    # Mostrar la última imagen
     plot_colored_board(board)
 
     sys.exit(0)
