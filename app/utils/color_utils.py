@@ -99,12 +99,8 @@ def generate_unique_board(N, max_iterations=1000):
 
         # deterministic resolution
         solver = SolverState(colored_board)
-        changed = True
-        while changed:
-            changed = (
-                solver.step1() or solver.step2() or solver.step3() or
-                solver.step4() or solver.step5_and_6()
-            )
+        solver.propagate()
+        # used56 = 5 in seq
 
         # check fully solved
         placed = sum(1 for row in solver.queens for x in row if x)

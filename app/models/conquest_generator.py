@@ -190,27 +190,38 @@ def generate_conquest_board(
         # Post-conquest: solver + alternate check
         coloured = _to_rgb(territories, n, seed_colors)
         solver = SolverState(coloured)
-        used56 = False
-        round = 0
+        # used56 = False
+        # round = 0
 
-        # Aplicar pasos lógicos y grabar cada uno
-        while True:
-            applied = False
-            # step1..step4
-            for num, fn in enumerate((solver.step1, solver.step2, solver.step3, solver.step4), start=1):
-                if fn():
-                    applied = True
-                    if record_steps:
-                        steps.append((f"step{num} @ it{it} round{round}", _to_rgb(territories, n, seed_colors)))
-            # step5_and_6
-            if solver.step5_and_6():
-                applied = True
-                used56 = True
-                if record_steps:
-                    steps.append((f"step5_and_6 @ it{it} round{round}", _to_rgb(territories, n, seed_colors)))
-            if not applied:
-                break
-            round += 1
+        # # Aplicar pasos lógicos y grabar cada uno
+        # while True:
+        #     applied = False
+        #     # step1..step4
+        #     for num, fn in enumerate((solver.step1, solver.step2, solver.step3, solver.step4), start=1):
+        #         if fn():
+        #             applied = True
+        #             if record_steps:
+        #                 steps.append((f"step{num} @ it{it} round{round}", _to_rgb(territories, n, seed_colors)))
+        #     # step5_and_6
+        #     if solver.step5_and_6():
+        #         applied = True
+        #         used56 = True
+        #         if record_steps:
+        #             steps.append((f"step5_and_6 @ it{it} round{round}", _to_rgb(territories, n, seed_colors)))
+        #     if not applied:
+        #         break
+        #     round += 1
+        # Motor “barato-primero”: devuelve p. ej. [1,2,1,3,1,4,5]
+        seq = solver.propagate()
+        used56 = 5 in seq
+ 
+        # Registrar cada paso de la traza, igual que antes
+        if record_steps and seq:
+            for k, step in enumerate(seq):
+                tag = "step5_and_6" if step == 5 else f"step{step}"
+                steps.append(
+                    (f"{tag} @ it{it} idx{k}",
+                    _to_rgb(territories, n, seed_colors)))
 
         # Alternate solution: revert & continue
         if find_alternate(solution, coloured):
@@ -221,12 +232,12 @@ def generate_conquest_board(
 
         placed = sum(q for row in solver.queens for q in row)
         # Stop C: solved con dificultad
-        if placed == n and used56:
-            stop_reason = "solved with step5_and_6"
-            if debug:
-                print(f"[stop] {stop_reason} at it{it}")
-            last_valid = deepcopy(territories)
-            break
+        # if placed == n and used56:
+        #     stop_reason = "solved with step5_and_6"
+        #     if debug:
+        #         print(f"[stop] {stop_reason} at it{it}")
+        #     last_valid = deepcopy(territories)
+        #     break
 
         last_valid = deepcopy(territories)
     else:

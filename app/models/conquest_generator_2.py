@@ -1,3 +1,4 @@
+# Archivo dessactualizado es necesario actualizar la logica y hacerla más similar al conquest_generator original
 #!/usr/bin/env python3
 """
 Conquest board generator — standalone executable
@@ -207,15 +208,17 @@ def generate_conquest_board(
         # Post-conquest: solver + alternate check
         coloured = _to_rgb(territories, n, seed_colors)
         solver = SolverState(coloured)
-        used56 = False
-        changed = True
-        while changed:
-            changed = (
-                solver.step1() or solver.step2() or solver.step3() or solver.step4()
-            )
-            if solver.step5_and_6():
-                changed = True
-                used56 = True
+        # used56 = False
+        # changed = True
+        # while changed:
+        #     changed = (
+        #         solver.step1() or solver.step2() or solver.step3() or solver.step4()
+        #     )
+        #     if solver.step5_and_6():
+        #         changed = True
+        #         used56 = True
+        seq = solver.propagate()
+        used56 = 5 in seq
 
         # Alternate solution: revert & continue
         if find_alternate(solution, coloured):
